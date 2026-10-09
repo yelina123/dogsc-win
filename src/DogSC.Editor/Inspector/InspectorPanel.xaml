@@ -1,0 +1,96 @@
+<UserControl x:Class="DogSC.Editor.Inspector.InspectorPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="500" d:DesignWidth="280"
+             Background="#2D2D30">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="10">
+            <!-- 片段信息 -->
+            <TextBlock Text="片段" Foreground="#007ACC" FontSize="13" FontWeight="Bold" Margin="0,0,0,10"/>
+            
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                <TextBlock Text="名称:" Width="60" Foreground="LightGray"/>
+                <TextBox x:Name="ClipNameBox" Background="#1E1E1E" Foreground="White" 
+                         BorderBrush="#3E3E40" Padding="3"/>
+            </StackPanel>
+
+            <!-- 速度 -->
+            <TextBlock Text="速度" Foreground="#007ACC" FontSize="13" FontWeight="Bold" Margin="0,15,0,5"/>
+            <StackPanel Orientation="Horizontal">
+                <Slider x:Name="SpeedSlider" Minimum="0.1" Maximum="5" Value="1" 
+                        Width="150" Margin="0,0,10,0"/>
+                <TextBlock x:Name="SpeedLabel" Text="1.0x" Foreground="White"/>
+            </StackPanel>
+
+            <!-- 音量 -->
+            <TextBlock Text="音量" Foreground="#007ACC" FontSize="13" FontWeight="Bold" Margin="0,15,0,5"/>
+            <StackPanel Orientation="Horizontal">
+                <Slider x:Name="VolumeSlider" Minimum="0" Maximum="2" Value="1" 
+                        Width="150" Margin="0,0,10,0"/>
+                <TextBlock x:Name="VolumeLabel" Text="100%" Foreground="White"/>
+            </StackPanel>
+
+            <!-- 画面设计 -->
+            <TextBlock Text="画面设计" Foreground="#007ACC" FontSize="13" FontWeight="Bold" Margin="0,15,0,5"/>
+            
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                <TextBlock Text="比例:" Width="60" Foreground="LightGray"/>
+                <ComboBox x:Name="AspectRatioBox" Background="#1E1E1E" Foreground="White" Width="150">
+                    <ComboBoxItem Content="原始" IsSelected="True"/>
+                    <ComboBoxItem Content="16:9"/>
+                    <ComboBoxItem Content="9:16"/>
+                    <ComboBoxItem Content="1:1"/>
+                    <ComboBoxItem Content="4:3"/>
+                    <ComboBoxItem Content="3:4"/>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                <TextBlock Text="圆角:" Width="60" Foreground="LightGray"/>
+                <Slider x:Name="CornerRadiusSlider" Minimum="0" Maximum="50" Width="150" Margin="0,0,10,0"/>
+                <TextBlock x:Name="CornerRadiusLabel" Text="0" Foreground="White"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                <TextBlock Text="阴影:" Width="60" Foreground="LightGray"/>
+                <Slider x:Name="ShadowSlider" Minimum="0" Maximum="50" Width="150" Margin="0,0,10,0"/>
+                <TextBlock x:Name="ShadowLabel" Text="0" Foreground="White"/>
+            </StackPanel>
+
+            <!-- 运镜 -->
+            <TextBlock Text="运镜" Foreground="#007ACC" FontSize="13" FontWeight="Bold" Margin="0,15,0,5"/>
+            
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                <TextBlock Text="缩放:" Width="60" Foreground="LightGray"/>
+                <Slider x:Name="ZoomSlider" Minimum="1" Maximum="3" Width="150" Margin="0,0,10,0"/>
+                <TextBlock x:Name="ZoomLabel" Text="1.0x" Foreground="White"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                <TextBlock Text="倾斜:" Width="60" Foreground="LightGray"/>
+                <Slider x:Name="TiltSlider" Minimum="-30" Maximum="30" Width="150" Margin="0,0,10,0"/>
+                <TextBlock x:Name="TiltLabel" Text="0°" Foreground="White"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                <TextBlock Text="透视:" Width="60" Foreground="LightGray"/>
+                <Slider x:Name="PerspectiveSlider" Minimum="0" Maximum="100" Width="150" Margin="0,0,10,0"/>
+                <TextBlock x:Name="PerspectiveLabel" Text="0" Foreground="White"/>
+            </StackPanel>
+
+            <!-- 光标 -->
+            <TextBlock Text="光标" Foreground="#007ACC" FontSize="13" FontWeight="Bold" Margin="0,15,0,5"/>
+            
+            <CheckBox x:Name="ShowCursorCheck" Content="显示光标" Foreground="LightGray" Margin="0,0,0,5"/>
+            <CheckBox x:Name="ClickRippleCheck" Content="点击涟漪" Foreground="LightGray" Margin="0,0,0,5"/>
+            <CheckBox x:Name="HideWhenIdleCheck" Content="静止时隐藏" Foreground="LightGray" Margin="0,0,0,5"/>
+
+            <!-- 按钮 -->
+            <Button Content="复制属性" Margin="0,20,0,5" Background="#3C3C4E" Foreground="White" Padding="10,5"/>
+            <Button Content="粘贴属性" Margin="0,0,0,5" Background="#3C3C4E" Foreground="White" Padding="10,5"/>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

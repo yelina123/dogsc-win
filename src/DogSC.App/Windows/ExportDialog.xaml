@@ -1,0 +1,61 @@
+<Window x:Class="DogSC.App.Windows.ExportDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="导出" Height="400" Width="450"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E1E" ResizeMode="NoResize">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="导出设置" Foreground="White" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+
+        <StackPanel Grid.Row="1">
+            <!-- 格式 -->
+            <TextBlock Text="格式" Foreground="#007ACC" FontWeight="Bold" Margin="0,0,0,5"/>
+            <ComboBox x:Name="FormatBox" Background="#2D2D30" Foreground="White" Margin="0,0,0,15">
+                <ComboBoxItem Content="MP4 视频" IsSelected="True"/>
+                <ComboBoxItem Content="MKV 视频"/>
+                <ComboBoxItem Content="M4A 音频"/>
+            </ComboBox>
+
+            <!-- 分辨率 -->
+            <TextBlock Text="分辨率" Foreground="#007ACC" FontWeight="Bold" Margin="0,0,0,5"/>
+            <ComboBox x:Name="ResolutionBox" Background="#2D2D30" Foreground="White" Margin="0,0,0,15">
+                <ComboBoxItem Content="原始" IsSelected="True"/>
+                <ComboBoxItem Content="1080p (1920×1080)"/>
+                <ComboBoxItem Content="1440p (2560×1440)"/>
+                <ComboBoxItem Content="4K (3840×2160)"/>
+            </ComboBox>
+
+            <!-- 帧率 -->
+            <TextBlock Text="帧率" Foreground="#007ACC" FontWeight="Bold" Margin="0,0,0,5"/>
+            <ComboBox x:Name="FpsBox" Background="#2D2D30" Foreground="White" Margin="0,0,0,15">
+                <ComboBoxItem Content="30 FPS"/>
+                <ComboBoxItem Content="60 FPS" IsSelected="True"/>
+            </ComboBox>
+
+            <!-- 输出路径 -->
+            <TextBlock Text="输出位置" Foreground="#007ACC" FontWeight="Bold" Margin="0,0,0,5"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBox x:Name="PathBox" Background="#2D2D30" Foreground="White" 
+                         BorderBrush="#3E3E40" Padding="5,3" Width="280" IsReadOnly="True"/>
+                <Button Content="浏览..." Click="Browse_Click" Style="{StaticResource DarkButton}" Margin="10,0,0,0"/>
+            </StackPanel>
+
+            <!-- 进度条 -->
+            <TextBlock Text="导出进度" Foreground="#007ACC" FontWeight="Bold" Margin="0,15,0,5"/>
+            <ProgressBar x:Name="ProgressBar" Height="20" Minimum="0" Maximum="1" Value="0"/>
+            <TextBlock x:Name="StatusText" Text="准备就绪" Foreground="Gray" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- 按钮 -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="取消" Click="Cancel_Click" Style="{StaticResource DarkButton}" Width="80"/>
+            <Button Content="导出" Click="Export_Click" Style="{StaticResource AccentButton}" Width="100" Margin="10,0,0,0"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>DogSC</AssemblyName>
+    <RootNamespace>DogSC.App</RootNamespace>
+    <ApplicationIcon>Resources\app.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DogSC.Core\DogSC.Core.csproj" />
+    <ProjectReference Include="..\DogSC.Capture\DogSC.Capture.csproj" />
+    <ProjectReference Include="..\DogSC.Editor\DogSC.Editor.csproj" />
+    <ProjectReference Include="..\DogSC.Export\DogSC.Export.csproj" />
+  </ItemGroup>
+</Project>
