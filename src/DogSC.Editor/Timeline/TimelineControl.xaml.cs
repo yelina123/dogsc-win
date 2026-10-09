@@ -18,16 +18,25 @@ public partial class TimelineControl : UserControl
     private TimeSpan _playheadPosition = TimeSpan.Zero;
     private TimeSpan _duration = TimeSpan.FromMinutes(1);
     private bool _isDraggingPlayhead;
+    private TimelineClip? _selectedClip;
+    private TimelineClip? _draggingClip;
+    private Point _dragStartPoint;
+    private TimeSpan _dragOriginalStart;
+    private bool _isResizingClip;
+    private double _resizeOriginalDuration;
 
     public event EventHandler<TimeSpan>? PlayheadChanged;
     public event EventHandler<TimelineClip>? ClipSelected;
+    public event EventHandler<TimelineClip>? ClipDoubleClicked;
+    public event EventHandler<TimelineClip>? ClipDeleted;
+    public event EventHandler<TimelineClip, TimeSpan>? ClipSplit;
 
     public double PixelsPerSecond
     {
         get => _pixelsPerSecond;
         set
         {
-            _pixelsPerSecond = value;
+            _pixelsPerSecond = Math.Clamp(value, 10, 500);
             Redraw();
         }
     }
@@ -43,10 +52,21 @@ public partial class TimelineControl : UserControl
         }
     }
 
+    public TimelineClip? SelectedClip
+    {
+        get => _selectedClip;
+        set
+        {
+            _selectedClip = value;
+            Redraw();
+        }
+    }
+
     public TimelineControl()
     {
         InitializeComponent();
         SizeChanged += (s, e) => Redraw();
+        MouseWheel += TimelineControl_MouseWheel;
     }
 
     public void SetTracks(IEnumerable<TimelineTrack> tracks)
@@ -114,23 +134,31 @@ public partial class TimelineControl : UserControl
     {
         var x = clip.TimelineRange.Start.TotalSeconds * _pixelsPerSecond;
         var width = clip.TimelineRange.Duration.TotalSeconds * _pixelsPerSecond;
+        var isSelected = clip == _selectedClip;
 
-        var clipRect = new Rectangle
+        var clipRect = new Border
         {
             Width = Math.Max(width, 10),
             Height = 38,
-            Fill = new SolidColorBrush(Color.FromRgb(0x3C, 0x3C, 0x4E)),
-            Stroke = new SolidColorBrush(Color.FromRgb(0x00, 0x7A, 0xCC)),
-            StrokeThickness = 1,
-            RadiusX = 3,
-            RadiusY = 3,
-            Cursor = Cursors.Hand,
+            Background = new SolidColorBrush(isSelected
+                ? Color.FromRgb(0x4C, 0x4C, 0x6E)
+                : Color.FromRgb(0x3C, 0x3C, 0x4E)),
+            BorderBrush = new SolidColorBrush(isSelected
+                ? Color.FromRgb(0x00, 0xBC, 0xEE)
+                : Color.FromRgb(0x00, 0x7A, 0xCC)),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(3),
+            Cursor = Cursors.SizeWE,
             Tag = clip
         };
 
-        clipRect.MouseLeftButtonDown += (s, e) =>
+        clipRect.MouseLeftButtonDown += (s, e) => OnClipMouseDown(clip, e);
+        clipRect.MouseMove += (s, e) => OnClipMouseMove(clip, e);
+        clipRect.MouseLeftButtonUp += (s, e) => OnClipMouseUp(clip, e);
+        clipRect.MouseRightButtonUp += (s, e) => ShowClipContextMenu(clip, e);
+        clipRect.MouseLeftButtonDoubleClick += (s, e) =>
         {
-            ClipSelected?.Invoke(this, clip);
+            ClipDoubleClicked?.Invoke(this, clip);
             e.Handled = true;
         };
 
@@ -149,14 +177,110 @@ public partial class TimelineControl : UserControl
         Canvas.SetLeft(clipLabel, x + 5);
         Canvas.SetTop(clipLabel, y + 2);
         TimelineCanvas.Children.Add(clipLabel);
+
+        if (clip.Speed != 1.0)
+        {
+            var speedLabel = new TextBlock
+            {
+                Text = $"{clip.Speed:F1}x",
+                Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0xAA, 0x00)),
+                FontSize = 9,
+                IsHitTestVisible = false
+            };
+            Canvas.SetLeft(speedLabel, x + width - 30);
+            Canvas.SetTop(speedLabel, y + 2);
+            TimelineCanvas.Children.Add(speedLabel);
+        }
+    }
+
+    private void OnClipMouseDown(TimelineClip clip, MouseButtonEventArgs e)
+    {
+        _selectedClip = clip;
+        ClipSelected?.Invoke(this, clip);
+
+        _dragStartPoint = e.GetToScreen();
+        _draggingClip = clip;
+        _dragOriginalStart = clip.TimelineRange.Start;
+
+        var pos = e.GetPosition(TimelineCanvas);
+        var clipRight = clip.TimelineRange.Start.TotalSeconds * _pixelsPerSecond +
+                       clip.TimelineRange.Duration.TotalSeconds * _pixelsPerSecond;
+
+        if (Math.Abs(pos.X - clipRight) < 5)
+        {
+            _isResizingClip = true;
+            _resizeOriginalDuration = clip.TimelineRange.Duration.TotalSeconds;
+        }
+
+        Redraw();
+        e.Handled = true;
+    }
+
+    private void OnClipMouseMove(TimelineClip clip, MouseEventArgs e)
+    {
+        if (_draggingClip != clip) return;
+
+        var pos = e.GetPosition(TimelineCanvas);
+        var deltaSeconds = (pos.X - _dragStartPoint.X) / _pixelsPerSecond;
+
+        if (_isResizingClip)
+        {
+            var newDuration = Math.Max(0.5, _resizeOriginalDuration + deltaSeconds);
+            clip.TimelineRange = new MediaTimeRange(
+                clip.TimelineRange.Start,
+                TimeSpan.FromSeconds(newDuration));
+        }
+        else
+        {
+            var newStart = TimeSpan.FromSeconds(
+                Math.Max(0, _dragOriginalStart.TotalSeconds + deltaSeconds));
+            clip.TimelineRange = new MediaTimeRange(
+                newStart,
+                clip.TimelineRange.Duration);
+        }
+
+        Redraw();
+    }
+
+    private void OnClipMouseUp(TimelineClip clip, MouseButtonEventArgs e)
+    {
+        _draggingClip = null;
+        _isResizingClip = false;
+    }
+
+    private void ShowClipContextMenu(TimelineClip clip, RoutedEventArgs e)
+    {
+        var menu = new ContextMenu();
+
+        var splitItem = new MenuItem { Header = "分割 (S)" };
+        splitItem.Click += (s, args) =>
+        {
+            ClipSplit?.Invoke(this, clip, PlayheadPosition);
+        };
+        menu.Items.Add(splitItem);
+
+        var deleteItem = new MenuItem { Header = "删除 (Del)" };
+        deleteItem.Click += (s, args) => ClipDeleted?.Invoke(this, clip);
+        menu.Items.Add(deleteItem);
+
+        menu.Items.Add(new Separator());
+
+        var speedItem = new MenuItem { Header = "速度" };
+        foreach (var speed in new[] { 0.5, 1.0, 1.5, 2.0 })
+        {
+            var subItem = new MenuItem { Header = $"{speed:F1}x", IsCheckable = true, IsChecked = clip.Speed == speed };
+            subItem.Click += (s, args) => clip.Speed = speed;
+            speedItem.Items.Add(subItem);
+        }
+        menu.Items.Add(speedItem);
+
+        menu.IsOpen = true;
     }
 
     private void DrawTimeRuler()
     {
         TimeRulerCanvas.Children.Clear();
-        var width = TimeRulerCanvas.ActualWidth;
         var seconds = _duration.TotalSeconds;
-        var totalWidth = seconds * _pixelsPerSecond;
 
         var tickInterval = GetTickInterval(_pixelsPerSecond);
         var tickSeconds = tickInterval.TotalSeconds;
@@ -229,6 +353,8 @@ public partial class TimelineControl : UserControl
     {
         base.OnMouseLeftButtonUp(e);
         _isDraggingPlayhead = false;
+        _draggingClip = null;
+        _isResizingClip = false;
     }
 
     private void UpdatePlayheadFromMouse(double x)
@@ -240,5 +366,24 @@ public partial class TimelineControl : UserControl
     private void TimelineCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         Redraw();
+    }
+
+    private void TimelineControl_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (Keyboard.Modifiers == ModifierKeys.Control)
+        {
+            var delta = e.Delta > 0 ? 10 : -10;
+            PixelsPerSecond += delta;
+            e.Handled = true;
+        }
+    }
+}
+
+internal static class MouseExtensions
+{
+    public static Point GetToScreen(this MouseButtonEventArgs e)
+    {
+        var pos = e.GetPosition((IInputElement)e.Source);
+        return new Point(pos.X, pos.Y);
     }
 }

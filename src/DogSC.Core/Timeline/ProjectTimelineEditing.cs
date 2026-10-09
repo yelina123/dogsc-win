@@ -67,22 +67,32 @@ public class ProjectTimelineEditing
     public void MoveClip(string clipId, TimeSpan newStart, int newTrackIndex)
     {
         TimelineClip? clip = null;
-        var oldTrack = _project.Timeline.Tracks.FirstOrDefault(t =>
+        TimelineTrack? oldTrack = null;
+
+        foreach (var track in _project.Timeline.Tracks)
         {
-            clip = t.Clips.FirstOrDefault(c => c.Id == clipId);
-            return clip != null;
-        });
+            clip = track.Clips.FirstOrDefault(c => c.Id == clipId);
+            if (clip != null)
+            {
+                oldTrack = track;
+                break;
+            }
+        }
 
         if (clip == null || oldTrack == null) return;
 
         var duration = clip.TimelineRange.Duration;
         clip.TimelineRange = new MediaTimeRange(newStart, duration);
-        clip.TrackIndex = newTrackIndex;
 
-        if (oldTrack.Tracks?[newTrackIndex] is { } newTrack && newTrack != oldTrack)
+        if (newTrackIndex >= 0 && newTrackIndex < _project.Timeline.Tracks.Count)
         {
-            oldTrack.Clips.Remove(clip);
-            newTrack.Clips.Add(clip);
+            var newTrack = _project.Timeline.Tracks[newTrackIndex];
+            if (newTrack != oldTrack)
+            {
+                oldTrack.Clips.Remove(clip);
+                newTrack.Clips.Add(clip);
+                clip.TrackIndex = newTrackIndex;
+            }
         }
     }
 
@@ -135,10 +145,18 @@ public class ProjectTimelineEditingTransforms
 /// </summary>
 public class ProjectTimelineRetime
 {
+    private readonly ProjectModel _project;
+    private readonly ProjectTimelineEditing _editing;
+
+    public ProjectTimelineRetime(ProjectModel project)
+    {
+        _project = project;
+        _editing = new ProjectTimelineEditing(project);
+    }
+
     public void SetSpeed(string clipId, double speed)
     {
-        var editing = new ProjectTimelineEditing(null!);
-        var clip = editing.FindClip(clipId);
+        var clip = _editing.FindClip(clipId);
         if (clip == null) return;
 
         var oldDuration = clip.TimelineRange.Duration;

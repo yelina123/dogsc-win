@@ -1,8 +1,10 @@
 using System.Windows;
+using System.Windows.Input;
 using DogSC.Capture;
 using DogSC.Core.Project;
 using DogSC.Core.Models;
 using DogSC.Core.Timeline;
+using DogSC.Core.Undo;
 using DogSC.App.Windows;
 
 namespace DogSC.App;
@@ -11,7 +13,11 @@ public partial class MainWindow : Window
 {
     private readonly CaptureManager _captureManager = new();
     private ProjectModel _project = new();
+    private readonly ProjectSerializer _serializer = new();
+    private readonly UndoManager _undoManager = new();
+    private ProjectTimelineEditing? _timelineEditing;
     private bool _isRecording;
+    private bool _isDirty;
 
     public MainWindow()
     {
@@ -35,8 +41,22 @@ public partial class MainWindow : Window
         _project.Timeline.Tracks.Add(audioTrack);
         _project.Timeline.Tracks.Add(cursorTrack);
 
+        _timelineEditing = new ProjectTimelineEditing(_project);
+        _undoManager.Clear();
+
         TimelineControl.SetTracks(_project.Timeline.Tracks);
         PreviewCanvas.SetProject(_project);
+
+        _isDirty = false;
+        UpdateTitle();
+    }
+
+    private void UpdateTitle()
+    {
+        var title = $"DogSC - {_project.Name}";
+        if (_isDirty) title += "*";
+        if (_isRecording) title += $" - 录制中 {_captureManager.Elapsed:hh\\:mm\\:ss}";
+        Title = title;
     }
 
     private void InitializeCaptureEvents()
@@ -91,16 +111,26 @@ public partial class MainWindow : Window
             Note = "标记"
         };
         _project.Markers.Add(marker);
+        _isDirty = true;
+        UpdateTitle();
         MessageBox.Show($"已添加标记 @ {PreviewCanvas.CurrentTime:mm\\:ss}", "DogSC");
     }
 
     private void NewProject_Click(object sender, RoutedEventArgs e)
     {
+        if (_isDirty)
+        {
+            var result = MessageBox.Show("当前项目有未保存的更改，是否保存？", "确认",
+                MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Cancel) return;
+            if (result == MessageBoxResult.Yes) SaveProject_Click(sender, e);
+        }
+
         _project = new ProjectModel { Name = "未命名项目" };
         InitializeProject();
     }
 
-    private void OpenProject_Click(object sender, RoutedEventArgs e)
+    private async void OpenProject_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
@@ -108,11 +138,41 @@ public partial class MainWindow : Window
         };
         if (dialog.ShowDialog() == true)
         {
-            MessageBox.Show($"打开项目: {dialog.FileName}", "DogSC");
+            try
+            {
+                _project = await _serializer.LoadAsync(dialog.FileName);
+                InitializeProject();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"打开项目失败: {ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 
-    private void SaveProject_Click(object sender, RoutedEventArgs e)
+    private async void SaveProject_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(_project.FilePath))
+        {
+            SaveAsProject_Click(sender, e);
+            return;
+        }
+
+        try
+        {
+            await _serializer.SaveAsync(_project, _project.FilePath);
+            _isDirty = false;
+            UpdateTitle();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"保存失败: {ex.Message}", "错误",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private async void SaveAsProject_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
@@ -121,7 +181,8 @@ public partial class MainWindow : Window
         };
         if (dialog.ShowDialog() == true)
         {
-            MessageBox.Show($"保存项目: {dialog.FileName}", "DogSC");
+            _project.FilePath = dialog.FileName;
+            await SaveProject_Click(sender, e);
         }
     }
 
@@ -159,6 +220,40 @@ Ctrl+C/V - 复制/粘贴效果
         MessageBox.Show(shortcuts, "快捷键");
     }
 
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+
+        if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.Z)
+        {
+            _undoManager.Undo();
+            e.Handled = true;
+        }
+        else if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.Y)
+        {
+            _undoManager.Redo();
+            e.Handled = true;
+        }
+        else if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.S)
+        {
+            SaveProject_Click(this, e);
+            e.Handled = true;
+        }
+        else if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.O)
+        {
+            OpenProject_Click(this, e);
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Space)
+        {
+            if (PreviewCanvas.IsPlaying)
+                PreviewCanvas.Pause();
+            else
+                _ = PreviewCanvas.PlayAsync();
+            e.Handled = true;
+        }
+    }
+
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
         if (_isRecording)
@@ -169,6 +264,21 @@ Ctrl+C/V - 复制/粘贴效果
             {
                 e.Cancel = true;
                 return;
+            }
+        }
+
+        if (_isDirty)
+        {
+            var result = MessageBox.Show("有未保存的更改，是否保存？", "确认",
+                MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Cancel)
+            {
+                e.Cancel = true;
+                return;
+            }
+            if (result == MessageBoxResult.Yes)
+            {
+                SaveProject_Click(this, e);
             }
         }
 
