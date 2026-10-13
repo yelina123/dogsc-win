@@ -41,12 +41,12 @@
         <Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,10"
                 Background="#AA2D2D30" CornerRadius="20" Padding="15,8">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Content="⏮" Click="Rewind_Click" Style="{StaticResource TransportButton}"/>
-                <Button Content="◀" Click="PreviousFrame_Click" Style="{StaticResource TransportButton}"/>
+                <Button Content="⏮" Click="Rewind_Click" Background="Transparent" Foreground="White" BorderThickness="0" Width="36" Height="36" FontSize="16" Cursor="Hand"/>
+                <Button Content="◀" Click="PreviousFrame_Click" Background="Transparent" Foreground="White" BorderThickness="0" Width="36" Height="36" FontSize="16" Cursor="Hand"/>
                 <Button x:Name="PlayButton" Content="▶" Click="PlayPause_Click" 
-                        Style="{StaticResource PlayButton}"/>
-                <Button Content="▶|" Click="NextFrame_Click" Style="{StaticResource TransportButton}"/>
-                <Button Content="⏭" Click="Forward_Click" Style="{StaticResource TransportButton}"/>
+                        Background="#007ACC" Foreground="White" BorderThickness="0" Width="48" Height="48" FontSize="20" Margin="10,0" Cursor="Hand"/>
+                <Button Content="▶|" Click="NextFrame_Click" Background="Transparent" Foreground="White" BorderThickness="0" Width="36" Height="36" FontSize="16" Cursor="Hand"/>
+                <Button Content="⏭" Click="Forward_Click" Background="Transparent" Foreground="White" BorderThickness="0" Width="36" Height="36" FontSize="16" Cursor="Hand"/>
                 <TextBlock x:Name="TimeDisplay" Text="00:00 / 00:00" 
                            Foreground="White" VerticalAlignment="Center" Margin="15,0"/>
             </StackPanel>
