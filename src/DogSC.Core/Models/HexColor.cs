@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using System.Windows.Media;
 
 namespace DogSC.Core.Models;
 
@@ -43,9 +42,9 @@ public readonly struct HexColor : IEquatable<HexColor>
         return new HexColor(0, 0, 0);
     }
 
-    public Color ToColor() => Color.FromArgb(A, R, G, B);
+    public string ToHexString() => $"#{R:X2}{G:X2}{B:X2}{A:X2}";
 
-    public override string ToString() => $"#{R:X2}{G:X2}{B:X2}{A:X2}";
+    public override string ToString() => ToHexString();
 
     public bool Equals(HexColor other) => R == other.R && G == other.G && B == other.B && A == other.A;
 

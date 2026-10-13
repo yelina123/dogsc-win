@@ -1,5 +1,5 @@
 using System;
-using System.Windows;
+using DogSC.Core.Models;
 
 namespace DogSC.Core.Effects;
 
@@ -8,7 +8,7 @@ namespace DogSC.Core.Effects;
 /// </summary>
 public class CursorRenderGeometry
 {
-    public Point ScreenPosition { get; set; }
+    public CorePoint ScreenPosition { get; set; }
     public double ScreenWidth { get; set; } = 1920;
     public double ScreenHeight { get; set; } = 1080;
     public double CanvasWidth { get; set; } = 1920;
@@ -17,7 +17,7 @@ public class CursorRenderGeometry
     public double PanX { get; set; } = 0.5;
     public double PanY { get; set; } = 0.5;
 
-    public Point GetCanvasPosition()
+    public CorePoint GetCanvasPosition()
     {
         var relativeX = ScreenPosition.X / ScreenWidth;
         var relativeY = ScreenPosition.Y / ScreenHeight;
@@ -25,7 +25,7 @@ public class CursorRenderGeometry
         var zoomedX = (relativeX - PanX) * Zoom + PanX;
         var zoomedY = (relativeY - PanY) * Zoom + PanY;
 
-        return new Point(zoomedX * CanvasWidth, zoomedY * CanvasHeight);
+        return new CorePoint(zoomedX * CanvasWidth, zoomedY * CanvasHeight);
     }
 
     public double GetCursorScale() => 1.0 / Zoom;

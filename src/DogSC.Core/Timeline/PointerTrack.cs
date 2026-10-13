@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Windows;
+using DogSC.Core.Models;
 
 namespace DogSC.Core.Timeline;
 
@@ -10,7 +10,7 @@ namespace DogSC.Core.Timeline;
 public class PointerTrackPoint
 {
     public TimeSpan Time { get; set; }
-    public Point Position { get; set; }
+    public CorePoint Position { get; set; }
     public bool IsClick { get; set; }
     public bool IsRightClick { get; set; }
     public int ScrollDelta { get; set; }

@@ -1,5 +1,5 @@
 using System;
-using System.Windows;
+using DogSC.Core.Models;
 
 namespace DogSC.Core.Effects;
 
@@ -14,7 +14,7 @@ public class ScreenProjection
     public double TiltZ { get; set; } = 0.0;
     public double Perspective { get; set; } = 0.0;
 
-    public Point ProjectPoint(Point point, double width, double height)
+    public CorePoint ProjectPoint(CorePoint point, double width, double height)
     {
         var cx = width / 2.0;
         var cy = height / 2.0;
@@ -25,17 +25,17 @@ public class ScreenProjection
         var tiltXRad = TiltX * Math.PI / 180.0;
         var tiltYRad = TiltY * Math.PI / 180.0;
 
-        var newY = y * Math.Cos(tiltXRad) - 0 * Math.Sin(tiltXRad);
-        var newX = x * Math.Cos(tiltYRad) - 0 * Math.Sin(tiltYRad);
+        var newY = y * Math.Cos(tiltXRad);
+        var newX = x * Math.Cos(tiltYRad);
 
         var perspectiveFactor = 1.0 / (1.0 + (newY / height) * Perspective);
 
-        return new Point(
+        return new CorePoint(
             cx + newX * perspectiveFactor,
             cy + newY * perspectiveFactor);
     }
 
-    public Rect ProjectRect(Rect rect, double width, double height)
+    public CoreRect ProjectRect(CoreRect rect, double width, double height)
     {
         var topLeft = ProjectPoint(rect.TopLeft, width, height);
         var topRight = ProjectPoint(rect.TopRight, width, height);
@@ -47,7 +47,7 @@ public class ScreenProjection
         var minY = Math.Min(Math.Min(topLeft.Y, topRight.Y), Math.Min(bottomLeft.Y, bottomRight.Y));
         var maxY = Math.Max(Math.Max(topLeft.Y, topRight.Y), Math.Max(bottomLeft.Y, bottomRight.Y));
 
-        return new Rect(minX, minY, maxX - minX, maxY - minY);
+        return new CoreRect(minX, minY, maxX - minX, maxY - minY);
     }
 }
 
@@ -59,7 +59,7 @@ public static class ScreenFrameDefaults
     public static double DefaultCornerRadius => 12.0;
     public static double DefaultShadowBlur => 24.0;
     public static double DefaultShadowOpacity => 0.25;
-    public static Point DefaultShadowOffset => new(0, 16);
+    public static CorePoint DefaultShadowOffset => new(0, 16);
     public static double DefaultPadding => 40.0;
     public static double DefaultBorderWidth => 0.0;
 }
