@@ -55,3 +55,4 @@ Output/
 .github/secrets/
 *.pem
 *.key
+.github/workflows/
