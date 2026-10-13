@@ -36,7 +36,7 @@
             <!-- 停止按钮 -->
             <Button Grid.Column="4" Content="■" Click="Stop_Click" 
                     Background="#CCFF4444" Foreground="White" BorderThickness="0"
-                    Width="30" Height="30" CornerRadius="15" Margin="5,0,0,0"
+                    Width="30" Height="30" Margin="5,0,0,0"
                     FontSize="14" Cursor="Hand"/>
         </Grid>
     </Border>

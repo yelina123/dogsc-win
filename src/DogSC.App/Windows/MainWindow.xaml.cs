@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using DogSC.Capture;
@@ -7,7 +9,7 @@ using DogSC.Core.Timeline;
 using DogSC.Core.Undo;
 using DogSC.App.Windows;
 
-namespace DogSC.App;
+namespace DogSC.App.Windows;
 
 public partial class MainWindow : Window
 {
@@ -66,7 +68,7 @@ public partial class MainWindow : Window
             Dispatcher.Invoke(() =>
             {
                 _isRecording = true;
-                Title = "DogSC - 录制中...";
+                UpdateTitle();
             });
         };
 
@@ -75,16 +77,13 @@ public partial class MainWindow : Window
             Dispatcher.Invoke(() =>
             {
                 _isRecording = false;
-                Title = "DogSC";
+                UpdateTitle();
             });
         };
 
         _captureManager.RecordingTick += elapsed =>
         {
-            Dispatcher.Invoke(() =>
-            {
-                Title = $"DogSC - {elapsed:hh\\:mm\\:ss}";
-            });
+            Dispatcher.Invoke(() => UpdateTitle());
         };
     }
 
@@ -159,17 +158,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        try
-        {
-            await _serializer.SaveAsync(_project, _project.FilePath);
-            _isDirty = false;
-            UpdateTitle();
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"保存失败: {ex.Message}", "错误",
-                MessageBoxButton.OK, MessageBoxImage.Error);
-        }
+        await SaveProjectToFile();
     }
 
     private async void SaveAsProject_Click(object sender, RoutedEventArgs e)
@@ -182,7 +171,22 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog() == true)
         {
             _project.FilePath = dialog.FileName;
-            await SaveProject_Click(sender, e);
+            await SaveProjectToFile();
+        }
+    }
+
+    private async Task SaveProjectToFile()
+    {
+        try
+        {
+            await _serializer.SaveAsync(_project, _project.FilePath);
+            _isDirty = false;
+            UpdateTitle();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"保存失败: {ex.Message}", "错误",
+                MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -213,9 +217,13 @@ public partial class MainWindow : Window
 Ctrl+R - 开始/停止录制
 Ctrl+Alt+M - 添加标记
 Ctrl+E - 导出
+Ctrl+S - 保存项目
+Ctrl+O - 打开项目
+Ctrl+N - 新建项目
 S - 分割片段
 Delete - 删除选中片段
-Ctrl+C/V - 复制/粘贴效果
+Ctrl+Z - 撤销
+Ctrl+Y - 重做
 空格 - 播放/暂停";
         MessageBox.Show(shortcuts, "快捷键");
     }
@@ -278,7 +286,7 @@ Ctrl+C/V - 复制/粘贴效果
             }
             if (result == MessageBoxResult.Yes)
             {
-                SaveProject_Click(this, e);
+                _ = SaveProjectToFile();
             }
         }
 

@@ -7,7 +7,6 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>DogSC</AssemblyName>
     <RootNamespace>DogSC.App</RootNamespace>
-    <ApplicationIcon>Resources\app.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\DogSC.Core\DogSC.Core.csproj" />

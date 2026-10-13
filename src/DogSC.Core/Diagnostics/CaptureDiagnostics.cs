@@ -33,6 +33,7 @@ public class CameraCaptureDiagnostics
     public int Width { get; set; }
     public int Height { get; set; }
     public double FrameRate { get; set; }
+    public long CapturedFrames { get; set; }
     public long DroppedFrames { get; set; }
     public double ActualFps { get; set; }
     public double LatencyMs { get; set; }

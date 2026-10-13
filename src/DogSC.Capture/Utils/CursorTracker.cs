@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Windows.Input;
+using System.Windows.Forms;
+using DogSC.Core.Models;
 using DogSC.Core.Timeline;
 
 namespace DogSC.Capture.Utils;
@@ -49,13 +49,14 @@ public class CursorTracker : IDisposable
 
         var position = System.Windows.Forms.Cursor.Position;
         var elapsed = DateTime.Now - _startTime;
+        var buttons = Control.MouseButtons;
 
         var point = new PointerTrackPoint
         {
             Time = elapsed,
-            Position = new System.Windows.Point(position.X, position.Y),
-            IsClick = Mouse.LeftButton == MouseButtonState.Pressed,
-            IsRightClick = Mouse.RightButton == MouseButtonState.Pressed
+            Position = new CorePoint(position.X, position.Y),
+            IsClick = (buttons & MouseButtons.Left) != 0,
+            IsRightClick = (buttons & MouseButtons.Right) != 0
         };
 
         _points.Add(point);

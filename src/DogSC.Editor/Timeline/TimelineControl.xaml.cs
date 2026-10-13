@@ -29,7 +29,7 @@ public partial class TimelineControl : UserControl
     public event EventHandler<TimelineClip>? ClipSelected;
     public event EventHandler<TimelineClip>? ClipDoubleClicked;
     public event EventHandler<TimelineClip>? ClipDeleted;
-    public event EventHandler<TimelineClip, TimeSpan>? ClipSplit;
+    public event Action<TimelineClip, TimeSpan>? ClipSplit;
 
     public double PixelsPerSecond
     {
@@ -156,11 +156,6 @@ public partial class TimelineControl : UserControl
         clipRect.MouseMove += (s, e) => OnClipMouseMove(clip, e);
         clipRect.MouseLeftButtonUp += (s, e) => OnClipMouseUp(clip, e);
         clipRect.MouseRightButtonUp += (s, e) => ShowClipContextMenu(clip, e);
-        clipRect.MouseLeftButtonDoubleClick += (s, e) =>
-        {
-            ClipDoubleClicked?.Invoke(this, clip);
-            e.Handled = true;
-        };
 
         Canvas.SetLeft(clipRect, x);
         Canvas.SetTop(clipRect, y);
@@ -255,7 +250,7 @@ public partial class TimelineControl : UserControl
         var splitItem = new MenuItem { Header = "分割 (S)" };
         splitItem.Click += (s, args) =>
         {
-            ClipSplit?.Invoke(this, clip, PlayheadPosition);
+            ClipSplit?.Invoke(clip, PlayheadPosition);
         };
         menu.Items.Add(splitItem);
 
