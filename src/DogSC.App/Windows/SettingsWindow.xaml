@@ -57,6 +57,6 @@
         </TabControl>
 
         <Button Grid.Row="2" Content="关闭" Click="Close_Click" 
-                Style="{StaticResource AccentButton}" Width="100" HorizontalAlignment="Right" Margin="0,15,0,0"/>
+                Background="#007ACC" Foreground="White" BorderBrush="#007ACC" Padding="10,5" Width="100" HorizontalAlignment="Right" Margin="0,15,0,0"/>
     </Grid>
 </Window>
